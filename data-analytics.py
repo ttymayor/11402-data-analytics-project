@@ -11,13 +11,22 @@ from scipy.stats import chi2_contingency
 
 sns.set_style("whitegrid")
 plt.rcParams["figure.figsize"] = (10, 6)
-plt.rcParams["font.sans-serif"] = ["Microsoft JhengHei"]
+plt.rcParams["font.sans-serif"] = ["Microsoft JhengHei"]  # 解決中文顯示問題
+plt.rcParams["axes.unicode_minus"] = False  # 解決負號顯示問題
 
 OUTPUT_DIR = "result"
 os.makedirs(OUTPUT_DIR, exist_ok=True)
 
 SENTIMENT_PALETTE = {"Positive": "#4CAF50", "Neutral": "#FFC107", "Negative": "#F44336"}
-TOPIC_ORDER = ["Technology", "Sports", "Finance", "Politics", "Health", "Climate", "Entertainment"]
+TOPIC_ORDER = [
+    "Technology",
+    "Sports",
+    "Finance",
+    "Politics",
+    "Health",
+    "Climate",
+    "Entertainment",
+]
 
 
 def savefig(filename):
@@ -30,7 +39,9 @@ def load_data():
     path = "archive/Social_Media_Sentiment_Analysis_AI_Trends_2026.csv"
     df = pd.read_csv(path, encoding="utf-8")
     df["posted_datetime"] = pd.to_datetime(df["posted_datetime"])
-    df["topic_category"] = pd.Categorical(df["topic_category"], categories=TOPIC_ORDER, ordered=True)
+    df["topic_category"] = pd.Categorical(
+        df["topic_category"], categories=TOPIC_ORDER, ordered=True
+    )
     return df
 
 
@@ -49,7 +60,10 @@ def topic_sentiment_count(df):
 
 # ── 2. 各主題情感比例（堆疊）────────────────────────────────────────────────
 def topic_sentiment_ratio(df):
-    ct = pd.crosstab(df["topic_category"], df["sentiment_label"], normalize="index") * 100
+    ct = (
+        pd.crosstab(df["topic_category"], df["sentiment_label"], normalize="index")
+        * 100
+    )
     ct = ct.reindex(TOPIC_ORDER)[["Positive", "Neutral", "Negative"]]
     ct.plot(kind="barh", stacked=True, color=[SENTIMENT_PALETTE[c] for c in ct.columns])
     plt.title("各主題情感比例 Sentiment Ratio by Topic (%)")
@@ -61,8 +75,13 @@ def topic_sentiment_ratio(df):
 # ── 3. 各主題情感分數分佈（Boxplot）─────────────────────────────────────────
 def topic_sentiment_score_box(df):
     sns.boxplot(
-        x="topic_category", y="sentiment_score", hue="topic_category",
-        data=df, order=TOPIC_ORDER, palette="Set2", legend=False
+        x="topic_category",
+        y="sentiment_score",
+        hue="topic_category",
+        data=df,
+        order=TOPIC_ORDER,
+        palette="Set2",
+        legend=False,
     )
     plt.title("各主題情感分數分佈 Sentiment Score Distribution by Topic")
     plt.xlabel("Topic Category")
@@ -85,10 +104,15 @@ def topic_emotion_heatmap(df):
 # ── 5. 各主題 × 各平台情感差異 ──────────────────────────────────────────────
 def topic_platform_sentiment(df):
     # Positive 比例作為指標
-    pivot = df[df["sentiment_label"] == "Positive"] \
-        .groupby(["topic_category", "platform"]).size() \
-        .div(df.groupby(["topic_category", "platform"]).size()) \
-        .mul(100).unstack("platform").reindex(TOPIC_ORDER)
+    pivot = (
+        df[df["sentiment_label"] == "Positive"]
+        .groupby(["topic_category", "platform"])
+        .size()
+        .div(df.groupby(["topic_category", "platform"]).size())
+        .mul(100)
+        .unstack("platform")
+        .reindex(TOPIC_ORDER)
+    )
     pivot.plot(kind="bar", colormap="tab10")
     plt.title("各主題各平台正面情感比例 Positive Sentiment % by Topic & Platform")
     plt.xlabel("Topic Category")
@@ -101,8 +125,14 @@ def topic_platform_sentiment(df):
 # ── 6. 各主題毒性分數比較 ────────────────────────────────────────────────────
 def topic_toxicity(df):
     sns.violinplot(
-        x="topic_category", y="toxicity_score", hue="topic_category",
-        data=df, order=TOPIC_ORDER, palette="Pastel1", inner="quartile", legend=False
+        x="topic_category",
+        y="toxicity_score",
+        hue="topic_category",
+        data=df,
+        order=TOPIC_ORDER,
+        palette="Pastel1",
+        inner="quartile",
+        legend=False,
     )
     plt.title("各主題毒性分數分佈 Toxicity Score by Topic")
     plt.xlabel("Topic Category")
@@ -114,7 +144,9 @@ def topic_toxicity(df):
 # ── 7. 各主題互動分數比較 ────────────────────────────────────────────────────
 def topic_engagement(df):
     avg = df.groupby("topic_category")["engagement_score"].mean().reindex(TOPIC_ORDER)
-    sns.barplot(x=avg.index, y=avg.values, hue=avg.index, palette="Blues_d", legend=False)
+    sns.barplot(
+        x=avg.index, y=avg.values, hue=avg.index, palette="Blues_d", legend=False
+    )
     plt.title("各主題平均互動分數 Avg Engagement Score by Topic")
     plt.xlabel("Topic Category")
     plt.ylabel("Avg Engagement Score")
@@ -125,8 +157,11 @@ def topic_engagement(df):
 # ── 8. 各主題情感分數月趨勢 ──────────────────────────────────────────────────
 def topic_sentiment_trend(df):
     monthly = (
-        df.groupby(["topic_category", pd.Grouper(key="posted_datetime", freq="ME")])
-        ["sentiment_score"].mean().reset_index()
+        df.groupby(["topic_category", pd.Grouper(key="posted_datetime", freq="ME")])[
+            "sentiment_score"
+        ]
+        .mean()
+        .reset_index()
     )
     fig, ax = plt.subplots()
     for topic in TOPIC_ORDER:
@@ -143,7 +178,7 @@ def topic_sentiment_trend(df):
 def chi2_topic_sentiment(df):
     ct = pd.crosstab(df["topic_category"], df["sentiment_label"])
     chi2, p, dof, _ = chi2_contingency(ct)
-    print(f"\n[卡方檢定] topic_category vs sentiment_label")
+    print("\n[卡方檢定] topic_category vs sentiment_label")
     print(f"  Chi2 = {chi2:.2f}, p-value = {p:.4f}, dof = {dof}")
     if p < 0.05:
         print("  → 結論：不同主題的情感分佈有顯著差異 (p < 0.05)")
@@ -154,7 +189,9 @@ def chi2_topic_sentiment(df):
 def main():
     print("Loading data...")
     df = load_data()
-    print(f"Rows: {len(df)} | Topics: {df['topic_category'].nunique()} | Platforms: {df['platform'].nunique()}")
+    print(
+        f"Rows: {len(df)} | Topics: {df['topic_category'].nunique()} | Platforms: {df['platform'].nunique()}"
+    )
 
     steps = [
         ("1. 各主題情感分佈（計數）", topic_sentiment_count),
