@@ -11,7 +11,7 @@ from scipy.stats import chi2_contingency
 
 sns.set_style("whitegrid")
 plt.rcParams["figure.figsize"] = (10, 6)
-plt.rcParams["font.sans-serif"] = ["Microsoft JhengHei"]  # 解決中文顯示問題
+plt.rcParams["font.sans-serif"] = ["Microsoft JhengHei", "PingFang TC", "Noto Sans CJK JP", "sans-serif"]  # 解決中文顯示問題
 plt.rcParams["axes.unicode_minus"] = False  # 解決負號顯示問題
 
 OUTPUT_DIR = "result"
