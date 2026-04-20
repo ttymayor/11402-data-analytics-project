@@ -1,11 +1,17 @@
 import os
-import pandas as pd
+
 import matplotlib.pyplot as plt
+import pandas as pd
 import seaborn as sns
 
 sns.set_style("whitegrid")
 plt.rcParams["figure.figsize"] = (8, 5)
-plt.rcParams["font.sans-serif"] = ["Microsoft JhengHei", "PingFang TC", "Noto Sans CJK JP", "sans-serif"]
+plt.rcParams["font.sans-serif"] = [
+    "Microsoft JhengHei",
+    "PingFang TC",
+    "Noto Sans CJK JP",
+    "sans-serif",
+]
 
 
 def main():

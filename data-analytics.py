@@ -38,10 +38,41 @@ def savefig(filename):
 def load_data():
     path = "archive/Social_Media_Sentiment_Analysis_AI_Trends_2026.csv"
     df = pd.read_csv(path, encoding="utf-8")
+    df = clean_data(df)
+    return df
+
+
+def clean_data(df):
+    original_len = len(df)
+
+    # 1. 移除垃圾貼文（spam_flag == True）
+    df = df[df["spam_flag"] == False].copy()
+    print(f"  [清洗] 移除 spam：{original_len - len(df)} 筆，剩餘 {len(df)} 筆")
+
+    # 2. 填補 mentions 空值（無提及為正常情況）
+    df["mentions"] = df["mentions"].fillna("")
+
+    # 3. 轉換時間欄位
     df["posted_datetime"] = pd.to_datetime(df["posted_datetime"])
+
+    # 4. topic_category → 有序 Categorical
     df["topic_category"] = pd.Categorical(
         df["topic_category"], categories=TOPIC_ORDER, ordered=True
     )
+
+    # 5. sentiment_label → Categorical
+    df["sentiment_label"] = pd.Categorical(
+        df["sentiment_label"],
+        categories=["Positive", "Neutral", "Negative"],
+        ordered=True,
+    )
+
+    # 6. day_of_week → 有序 Categorical
+    day_order = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]
+    df["day_of_week"] = pd.Categorical(
+        df["day_of_week"], categories=day_order, ordered=True
+    )
+
     return df
 
 

@@ -10,4 +10,4 @@ wheels/
 .venv
 
 # Result files
-result/
+result*/
